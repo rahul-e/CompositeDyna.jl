@@ -1,11 +1,11 @@
-function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64, rho::Float64)
+function bstif(c::Array{Float64, 2}, xl::Vector{Float64}, yl::Vector{Float64})
     # xl and yl: x and y-coordinates of nodes in an element
     GP = Vector{Float64}(undef, 2)
     WG = Vector{Float64}(undef, 2)
     # Gaussian points
     GP=[-0.5773502691896, 0.5773502691896]
     WG=[1.0, 1.0]
-    
+
     # X coordinates of the eight nodes in natural local coordinate system 
     # (refer Pg. 77, Fig. 5.14 in Finite Element Analysis by Bhavikatti)
     r = Array{Float64, 1}(undef, 8)
@@ -24,7 +24,6 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64, rho::Float6
             xjaci[i,j]=0.0
         end
     end
-    
     # Define vector for shape function
     sf = Array{Float64, 1}(undef, 8)
     sf = [i*0.0 for i in 1:8]
@@ -47,40 +46,19 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64, rho::Float6
     Δjac::Float64=0.0
     da::Float64=0.0
     
-    # Initialize element mass matrix
-    em = Array{Float64, 2}(undef, 40, 40)
+    # Initialize element stiffness matrix
+    ek = Array{Float64, 2}(undef, 40, 40)
     for i=1:40
         for j=1:40
-            em[i,j]=0.0
+            ek[i,j]=0.0
         end
     end
-    
-    # Define g
-    g = Array{Float64, 2}(undef, 5, 40)
-    sg = Array{Float64, 2}(undef, 5, 40)
-    # Initialize miscellenous variables
-    k1::Int64=0; k2::Int64=0; k3::Int64=0; k4::Int64=0; k5::Int64=0 
+    b = Array{Float64, 2}(undef, 8, 40)
+    db = Array{Float64, 2}(undef, 8, 40)
 
-    #Define ss matrix
-    ss = Array{Float64, 2}(undef, 5, 5)
-    # Initialize ss matrix which contains terms that are functions of density and panel thickness   
-    for i=1:5
-        for j=1:5
-            ss[i,j]=0.0
-        end
-    end 
-    
-    # Explicitly define diagonal terms (trace) of ss matrix  
-    ss[1,1]=rho*th
-    ss[2,2]=rho*th
-    ss[3,3]=rho*th
-    ss[4,4]=rho*th*th*th/12.0
-    ss[5,5]=rho*th*th*th/12.0
-
-    # Loop over to numerically integrate the terms in (SF[] × SS[]) using the four Gaussian-points whose weights are 1.0 
     for ix=1:2
         for iy=1:2
-            # Calculate shape functions and their derivatives (refer Pg. 78 FEA by Bhavikatti)
+            # Calculate shape functions and their derivatives.
             for i=1:8
                 aa=(1.0+r[i]*GP[ix])
                 bb=(1.0+s[i]*GP[iy])
@@ -96,8 +74,7 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64, rho::Float6
                     sfd[2,i]=0.5*(s[i]+2.0*(s[i]^2-1.0)*GP[iy])*aa
                 end
             end
-            
-                
+
             # Define elements in Jacobian matrix
             # Refer Pg. 227 Eqn. number 13.8 in FEA by Bhavikatti for 4-node quad element case.
             for i=1:8
@@ -134,10 +111,9 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64, rho::Float6
                 end
             end
 
-
-            for i=1:5
+            for i=1:8
                 for j=1:40
-                    g[i,j]=0.0
+                    b[i,j]=0.0
                 end
             end
 
@@ -147,38 +123,54 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64, rho::Float6
                 k3=k2+1
                 k4=k3+1
                 k5=k4+1
-                g[1,k1]=sf[i]
-                g[2,k2]=sf[i]
-                g[3,k3]=sf[i]
-                g[4,k4]=sf[i]
-                g[5,k5]=sf[i]
+                b[1,k1]=sfdj[1,i]
+                b[1,k3]=sf[i]
+                b[2,k2]=sfdj[2,i]
+                b[2,k3]=sf[i]
+                b[3,k1]=sfdj[2,i]
+                b[3,k2]=sfdj[1,i]
+                b[4,k4]=sfdj[1,i]
+                b[5,k5]=sfdj[2,i]
+                b[6,k4]=sfdj[2,i]
+                b[6,k5]=sfdj[1,i]
+                b[7,k3]=sfdj[1,i]
+                b[7,k4]=sf[i]
+                b[8,k3]=sfdj[2,i]
+                b[8,k5]=sf[i]
             end
 
-            for i=1:5
+            for i=1:8
                 for j=1:40
-                    sg[i,j]=0.0
+                    db[i,j]=0.0
                 end
             end
 
-            for i=1:5
+            for i=1:8
                 for j=1:40
-                    for k=1:5
-                        sg[i,j]=sg[i,j]+ss[i,k]*g[k,j]
+                    for k=1:8
+                        db[i,j]=db[i,j]+c[i,k]*b[k,j]
                     end
+                end
+            end
+
+            for i=1:8
+                for j=1:40
+                    ek[i,j]=0.0
                 end
             end
 
             for i=1:40
                 for j=1:40
-                    for k=1:5
-                        em[i,j]=em[i,j]+g[k,j]*sg[k,j]*da
+                    for k=1:8
+                        ek[i,j]=ek[i,j]+b[k,i]*db[k,j]*da
                     end
                 end
             end
-
+        
         end
+    
     end
 
-    return em
+    return ek
 
 end
