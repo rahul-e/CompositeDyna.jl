@@ -2,8 +2,8 @@ function geo(ac::Float64, bc::Float64, nx::Int64, ny::Int64, kl::Int64, kr::Int6
 	maxelement::Int64, nelements::Int64, nbig::Int64, nbigp::Int64, nnd::Array{Int64, 2}, nndp::Array{Int64, 2}, xco::Array{Float64, 2}, yco::Array{Float64, 2}, 
      ndd::Array{Int64, 2}, nddp::Array{Int64, 2}, xnode::Int64, ynode::Int64, nhigh::Int64; nf=40, nfp=16)
      
-     nf=40 # 8 elements × 5 dofs
-     nfp=16 # 8 elements × 2 dofs
+     nf=40 # 8 elements × 5 dofs (u, v, w, θ_x, θ_y )
+     nfp=16 # 8 elements × 2 dofs (u, v)
      maxnode=500
      maxelement=50
 
