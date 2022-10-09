@@ -53,8 +53,8 @@ function CadNum(cht::Int64, nds::Int64, neq::Int64, nsky::Int64,
         for i=2:neq
             if(cht[i]>mband)
                 mband=cht[i]
-                nds[i+1]=nds[i]+cht[i]+1
             end
+            nds[i+1]=nds[i]+cht[i]+1
         end
     end
 
