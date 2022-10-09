@@ -276,6 +276,40 @@ function geo(ac::Float64, bc::Float64, nx::Int64, ny::Int64, kl::Int64, kr::Int6
 
      end
 
+     for i=1:8
+          xl(i)=xco(1,i)
+          yl(i)=yco(1,i)
+     end
+     
+     # Call BendingStiff.jl
+     # Call MassMatrix.jl
+
+     # Initiate skyline matrix
+     nsky::Int64=0
+     
+     for i=1:nbig
+          cht[i]=0
+          nds[i]=0
+     end
+
+     mband::Int64=0
+     lnum::Int64=0
+     # CHT = Column Height
+
+     for lnum=1:nelements
+          for i=1:40
+               nd[i]=nnd[lnum,i]
+          end
+          # Call ColumnHeight.jl
+     end
+     for lnum=1:nelements
+          nbig1=nbig+1
+          # Call Cadnum.jl
+     end
+
+     
+
+
      return
 end     
      
