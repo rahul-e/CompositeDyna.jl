@@ -277,8 +277,8 @@ function geo(ac::Float64, bc::Float64, nx::Int64, ny::Int64, kl::Int64, kr::Int6
      end
 
      for i=1:8
-          xl(i)=xco(1,i)
-          yl(i)=yco(1,i)
+          xl[i]=xco[1,i]
+          yl[i]=yco[1,i]
      end
      
      # Call BendingStiff.jl
@@ -300,14 +300,64 @@ function geo(ac::Float64, bc::Float64, nx::Int64, ny::Int64, kl::Int64, kr::Int6
           for i=1:40
                nd[i]=nnd[lnum,i]
           end
-          # Call ColumnHeight.jl
+          # Call ColumnH()
      end
      for lnum=1:nelements
           nbig1=nbig+1
-          # Call Cadnum.jl
+          # Call CadNum()
      end
 
+     # Initialize global stiffness and mass matrix and 
+     for i=1:nsky
+          gk[i]=0.0
+          gm[i]=0.0
+     end
+
+     for i=1:nbig
+          for j=1:nbig
+               sqkg[i,j]=0.0
+               sqk[i,j]=0.0
+          end
+     end
+
+     # Loop over elements to assemble
+     for lnum=1:nelements
+          for i=1:40
+               nd[i]=nnd[lnum,i]
+          end
+
+          for i=1:40
+               for j=1:40
+                    if(nd[i]!=0 && nd[j]!=0)
+                         sqk[nd[i],nd[j]]=sqk[nd[i],nd[j]]+em[i,j]
+                    end
+               end
+          end
+
+          nxl=mod(lnum,nx)
+          nyl=int((lnum-1)/nx)+1
+
+          if(nxl==0)
+               nxl=nx
+          end
+
+          if((nxl<=idxe) && (nxl>=idxs) && (nyl<=idye) && (nyl>=idys))
+               # Call PASSEM(GK,DEK,NDS,ND,40,NBIG1,NSKY,40)
+          else
+               # Call PASSEM(GK,EK,NDS,ND,40,NBIG1,NSKY,40)
+          end
+
+          #    Call PASSEM(GM,EM,NDS,ND,40,NBIG1,NSKY,40)
+     end
+
+     nn::int64=nbig
+     nwk::int64=nsky
+
+     println("Computing free vibration characteristics")
      
+     # Call subinit() 
+     # Call subspace()
+
 
 
      return

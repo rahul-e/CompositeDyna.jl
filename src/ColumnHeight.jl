@@ -1,4 +1,4 @@
-function ColumnH(cht::Int64, nd::Float64, ned::Int64, neq::Int64)
+function ColumnH(cht::Int64, nd::Vector{Int64}, ned::Int64, neq::Int64)
     # cht - column height refers to the number of elements 
     # in each column below the skyline and above the leading 
     # diagonal excluding the diagonal element of the global stiffness matrix
@@ -16,7 +16,7 @@ function ColumnH(cht::Int64, nd::Float64, ned::Int64, neq::Int64)
 
     for i=1:ned
         if (nd[i]!=0) 
-            if((nd[i]-ls)!=0)
+            if((nd[i]-ls)>=0)
                 ls=nd[i]
             end
         end
@@ -34,7 +34,7 @@ function ColumnH(cht::Int64, nd::Float64, ned::Int64, neq::Int64)
     
 end
 
-function CadNum(cht::Int64, nds::Int64, neq::Int64, nsky::Int64,
+function CadNum(cht::Int64, nds::Vector{Int64}, neq::Int64, nsky::Int64,
     mband::Int64)
     # cht - column height refers to the number of elements
     # nds - address of the diagonal elements
@@ -63,5 +63,42 @@ function CadNum(cht::Int64, nds::Int64, neq::Int64, nsky::Int64,
     
     return
 end
+
+function Passem(sk::Vector{Float64}, ek::Vector{Float64}, nds::Vector{Int64}, nd::Vector{Int64}, ned::Int64, neq1::Int64, nsky::Int64, nued::Int64)
+    sk::Vector{Float64}(undef, nsky)
+    nds::Vector{Int64}(undef, neq1)
+    nd::Vector{Int64}(undef, ned)
+    ek::Array{Float64}(undef, nued, nued)
+    ii::Int64
+    jj::Int64
+    mi::Int64
+    # Passem function from Krishnamoorthy Pg. 600
+    for i=1:ned
+        ii=nd[i]
+
+        if(ii!=0)
+            for j=1:ned
+                jj=nd[j]
+
+                if(jj!=0)
+                    mi=nds[jj]
+                    ij=jj-ii
+
+                    if(ij>=0)
+                        kk=mi+jj
+                        sk[kk]=sk[kk]+ek[i,j]
+                    end
+                end
+            end
+        end
+    end
+    return sk
+end
+
+
+            
+
+
+
     
 
