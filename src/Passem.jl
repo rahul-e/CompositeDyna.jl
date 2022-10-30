@@ -25,6 +25,7 @@ function passem(sk::Array{Float64, 2}, ek::Array{Float64, 2}, nds::Vector{Int64}
         end
     end
     end
+end
 
 function pasolv(sk::Array{Float64}, p::Array{Float64}, nds::Array{Int64}, nn::Int64, 
     neq1::Array{Int64}, nsky::Int64, inde::Int64)

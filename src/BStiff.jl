@@ -1,11 +1,11 @@
-function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
+function bstif(c::Array{Float64}, xl::Vector{Float64}, yl::Vector{Float64}, radx::Float64, rady::Float64)
     # xl and yl: x and y-coordinates of nodes in an element
     GP = fill(0.0, 2)
     WG = fill(0.0, 2)
     # Gaussian points
     GP=[-0.5773502691896, 0.5773502691896]
     WG=[1.0, 1.0]
-    
+    #println(yl)
     # X coordinates of the eight nodes in natural local coordinate system 
     # (refer Pg. 77, Fig. 5.14 in Finite Element Analysis by Bhavikatti)
     r = fill(0.0, 8)
@@ -16,7 +16,7 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
     s = [-1.0, -1.0, 1.0, 1.0, -1.0, 0.0, 1.0, 0.0]
 
     # Initialize Jacobian matrix and its inverse 
-    
+    xjac=fill(0.0, (2, 2))
     xjaci=fill(0.0, (2, 2))
     
     # Define vector for shape function
@@ -24,9 +24,7 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
     
     # Define matrix for shape function derivatives
     # evaluated at Gaussian points 
-    # Initialize shape function and shape function derivatives
-
-	sfd = fill(0.0, (2, 8))
+    sfd = fill(0.0, (2, 8))
     
     # Jacobian of shape function derivatives
     sfdj = fill(0.0, (2, 8))
@@ -34,30 +32,11 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
     # Initialize determinant of Jacobian    
     Δjac::Float64=0.0
     da::Float64=0.0
+    srxy::Float64=0.0
     
     # Initialize element mass matrix
-    em = fill(0.0, (40, 40))
+    ek = fill(0.0, (40, 40))
     
-    # Define g
-    
-    # Initialize miscellenous variables
-    k1::Int64=0; k2::Int64=0; k3::Int64=0; k4::Int64=0; k5::Int64=0 
-
-    #Define ss matrix
-    ss = fill(0.0, (5, 5))
-    # Initialize ss matrix which contains terms that are functions of density and panel thickness   
-
-    # Specific weight
-	spwt::Float64 = 2.8E-5
-	# Density
-	rho::Float64 = spwt/9810	
-    # Explicitly define diagonal terms (trace) of ss matrix  
-    ss[1,1]=rho*th
-    ss[2,2]=rho*th
-    ss[3,3]=rho*th
-    ss[4,4]=rho*th*th*th/12.0
-    ss[5,5]=rho*th*th*th/12.0
-
     # Loop over to numerically integrate the terms in (SF[] × SS[]) using the four Gaussian-points whose weights are 1.0 
     for ix=1:2
         for iy=1:2
@@ -77,8 +56,7 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
                     sfd[2,i]=0.5*(s[i]+2.0*(s[i]^2-1.0)*GP[iy])*aa
                 end
             end
-
-			xjac=fill(0.0, (2, 2))
+            
                 
             # Define elements in Jacobian matrix
             # Refer Pg. 227 Eqn. number 13.8 in FEA by Bhavikatti for 4-node quad element case.
@@ -100,8 +78,8 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
             xjaci[2,2]=xjac[1,1]/Δjac
 
             da=Δjac*WG[ix]*WG[iy]
-            #println(WG[ix], WG[ix], Δjac)
-			sfdj=fill(0.0, (2, 8))
+            # Initialize Shape funtion derivation Jacobian
+            sfdj=fill(0.0, (2, 8))
 
             # Calculate strain-displacement matrix B: C. S. Krishnamoorthy Pg. 115
             for i=1:2
@@ -111,42 +89,56 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
                     end
                 end
             end
-            
-			g = fill(0.0, (5, 40))
-			
+
+            b=fill(0.0, (8,40))
+
             for i=1:8
                 k1=5*(i-1)+1
                 k2=k1+1
                 k3=k2+1
                 k4=k3+1
                 k5=k4+1
-                g[1,k1]=sf[i]
-                g[2,k2]=sf[i]
-                g[3,k3]=sf[i]
-                g[4,k4]=sf[i]
-                g[5,k5]=sf[i]
+
+                srxy=0.5*(1.0/rady-1.0/radx)
+
+                b[1,k1]=sfdj[1, i]
+                b[1,k3]=sf[i]/radx
+                b[2,k2]=sfdj[2,i]
+                b[2,k3]=sf[i]/rady
+                b[3,k1]=sfdj[2,i]
+                b[3,k2]=sfdj[1,i]
+                b[4,k4]=sfdj[1,i]
+                b[5,k5]=sfdj[2,i]
+                b[6,k4]=sfdj[2,i]
+                b[6,k5]=sfdj[1,i]
+                b[7,k3]=sfdj[1,i]
+                b[7,k4]=sf[i]
+                b[8,k3]=sfdj[2,i]
+                b[8,k5]=sf[i]
             end
 
-			sg = fill(0.0, (5, 40))
-            for i=1:5
+            db=fill(0.0, (8,40))
+
+            for i=1:8
                 for j=1:40
-                    for k=1:5
-                        sg[i,j]=sg[i,j]+ss[i,k]*g[k,j]
+                    for k=1:8
+                        db[i,j]=db[i,j]+c[i,k]*b[k,j]
                     end
                 end
             end
 
             for i=1:40
                 for j=1:40
-                    for k=1:5
-                        em[i,j]=em[i,j]+g[k,i]*sg[k,j]*da
+                    for k=1:8
+                        ek[i,j]=ek[i,j]+b[k,i]*db[k,j]*da
                     end
                 end
             end
 
         end
     end
-    
-    return em
+
+    return ek
+
 
 end
