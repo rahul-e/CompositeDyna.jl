@@ -1,32 +1,3 @@
-function passem(sk::Array{Float64, 2}, ek::Array{Float64, 2}, nds::Vector{Int64},
-    nd::Vector{Int64}, ned::Int64, neq1::Int64, nsky::Int64, nued::Int64)
-    
-    i::Int64=0
-    ii::Int64=0
-    j::Int64=0
-    jj::Int64=0
-    mi::Int64=0
-    ij::Int64=0
-    kk::Int64=0
-    # PASSEM function FEA - THeory and Programming, C. S. Krishnamoorthy, Pg. 190 
-    for i=1:ned
-    ii=nd[i]
-    if(ii>0)
-        for j=1:ned
-            jj=nd[j]
-            if(jj>0)
-                mi=nds[jj]
-                ij=jj-ii
-                if(ij>=0)
-                    kk=mi+ij
-                    sk[kk]=sk[kk]+ek[i,j]
-                end
-            end
-        end
-    end
-    end
-end
-
 function pasolv(sk::Array{Float64}, p::Array{Float64}, nds::Array{Int64}, nn::Int64, 
     neq1::Array{Int64}, nsky::Int64, inde::Int64)
     # PASOLV function from FEA - THeory and Programming, C. S. Krishnamoorthy Pg. 191

@@ -1,9 +1,12 @@
 using CSV
-using DelimitedFiles, DataFrames, LinearAlgebra
-using Plots
+using DataFrames
+#using Plots
+#using BendingStiff
+using DelimitedFiles
+#using LinearAlgebra
+#using CompositeDyna
 
-
-data = readdlm("./data.in", header=false);
+data = readdlm("./test/data.in", header=false)
 df = DataFrame(data, :auto)
 
 iatype::Int64 = df[1, "x1"]
@@ -43,4 +46,3 @@ klp::Int64=df[2+2*nlayers+4, "x1"]
 krp::Int64=df[2+2*nlayers+4, "x2"]
 ktp::Int64=df[2+2*nlayers+4, "x3"]
 kbp::Int64=df[2+2*nlayers+4, "x4"]
-
