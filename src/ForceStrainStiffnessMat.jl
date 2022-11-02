@@ -108,5 +108,5 @@ function composit(nlayers::Int64, ori::Vector{Float64}, zpos::Vector{Float64}, e
     cc[8,7]=5.0/6.0*ss[2,1]
     cc[8,8]=5.0/6.0*ss[2,2]
 
-    return
+    return cc
 end

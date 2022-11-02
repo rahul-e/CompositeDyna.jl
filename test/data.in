@@ -7,7 +7,7 @@
 .25
 -.25
 -.5
-10.0 1.0 10 10				            *A, B, NX, NY*
+10.0 1.0 2 2				            *A, B, NX, NY*
 2 1 0 0									     *Actual BC*
 1 0 0 0								        *Plane-Stress BC*
 0.0 0.0								        *Rx Ry

@@ -4,10 +4,11 @@ using DataFrames
 #using BendingStiff
 using DelimitedFiles
 #using LinearAlgebra
-#using CompositeDyna
+using CompositeDyna
 
 data = readdlm("./test/data.in", header=false)
 df = DataFrame(data, :auto)
+
 
 iatype::Int64 = df[1, "x1"]
 nlayers::Int64 = df[2, "x1"]
@@ -46,3 +47,8 @@ klp::Int64=df[2+2*nlayers+4, "x1"]
 krp::Int64=df[2+2*nlayers+4, "x2"]
 ktp::Int64=df[2+2*nlayers+4, "x3"]
 kbp::Int64=df[2+2*nlayers+4, "x4"]
+
+
+CC = CompositeDyna.composit(nlayers, ori, zpos, E11, E22, PR12, G12, G13, G23)
+
+gk, gm, nbig, nsky, cht = CompositeDyna.geo(CC, ac, bc, th, nx, ny, kl, kr, kt, kb, klp, krp, ktp, kbp)

@@ -1,6 +1,6 @@
-function geo(ac::Float64, bc::Float64, nx::Int64, ny::Int64, 
+function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int64, ny::Int64, 
      kl::Int64, kr::Int64, kt::Int64, kb::Int64, 
-     klp::Int64, krp::Int64, ktp::Int64, kbp::Int64, 
+     klp::Int64, krp::Int64, ktp::Int64, kbp::Int64
      #maxnode::Int64, maxelement::Int64, nelements::Int64,
      #nbig::Int64, nbigp::Int64, nnd::Array{Int64, 2}, nndp::Array{Int64, 2}, xco::Array{Float64, 2}, yco::Array{Float64, 2}, 
      #ndd::Array{Int64, 2}, nddp::Array{Int64, 2},
@@ -11,7 +11,7 @@ function geo(ac::Float64, bc::Float64, nx::Int64, ny::Int64,
           nfp=16 # 8 elements × 2 dofs (u, v)
           maxnode=500
           maxelement=50
-           nelements=nx*ny
+          nelements=nx*ny
      
           nodemat = fill(0, (2*ny+1, 2*nx+1))
           xnode = fill(0.0, maxnode)
@@ -295,8 +295,11 @@ function geo(ac::Float64, bc::Float64, nx::Int64, ny::Int64,
            gk = fill(0.0, nsky)
            gm = fill(0.0, nsky)
           
-          sqkg = fill(0.0, (nbig, nbig))
+           sqkg = fill(0.0, (nbig, nbig))
            sqk = fill(0.0, (nbig, nbig))
+          
+#           c = Array{Float64, 2}(undef, 8, 8)
+#           c = CompositeDyna.composit(nlayers, ori, zpos, E11, E22, PR12, G12, G13, G23)
                 
            # Call the funtion to generate element mass matrix
            em = mass(xl,yl,th)
@@ -335,7 +338,7 @@ function geo(ac::Float64, bc::Float64, nx::Int64, ny::Int64,
           nn::Int64=nbig
           nwk::Int64=nsky
           println("Number of elements in the stiffness matrix is ", nsky)
-           println("Number of equations in the global system is ", nbig)
+          println("Number of equations in the global system is ", nbig)
           println("Computing free vibration characteristics")
      
           return gk, gm, nbig, nsky, cht
