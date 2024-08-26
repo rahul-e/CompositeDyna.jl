@@ -1,18 +1,20 @@
-function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
+function mass!(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
+
+    print("Length, Width and Thickness of the Plate are  ", xl, yl, th)
     # xl and yl: x and y-coordinates of nodes in an element
-    GP = fill(0.0, 2)
-    WG = fill(0.0, 2)
+    #GP = fill(0.0, 2)
+    #WG = fill(0.0, 2)
     # Gaussian points
     GP=[-0.5773502691896, 0.5773502691896]
     WG=[1.0, 1.0]
     
     # X coordinates of the eight nodes in natural local coordinate system 
     # (refer Pg. 77, Fig. 5.14 in Finite Element Analysis by Bhavikatti)
-    r = fill(0.0, 8)
+    #r = fill(0.0, 8)
     r = [-1.0, 1.0, 1.0, -1.0, 0.0, 1.0, 0.0, -1.0]
 
     # Y coordinates of the eight nodes in natural local coordinate system 
-    s = fill(0.0, 8)
+    #s = fill(0.0, 8)
     s = [-1.0, -1.0, 1.0, 1.0, -1.0, 0.0, 1.0, 0.0]
 
     # Initialize Jacobian matrix and its inverse 
@@ -50,19 +52,19 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
     # Specific weight
 	spwt::Float64 = 2.8E-5
 	# Density
-	rho::Float64 = spwt/9810	
+	rho::Float64 = spwt/9810.0	
     # Explicitly define diagonal terms (trace) of ss matrix  
     ss[1,1]=rho*th
     ss[2,2]=rho*th
     ss[3,3]=rho*th
-    ss[4,4]=rho*th*th*th/12.0
-    ss[5,5]=rho*th*th*th/12.0
+    ss[4,4]=rho*th^3/12.0
+    ss[5,5]=rho*th^3/12.0
 
     # Loop over to numerically integrate the terms in (SF[] × SS[]) using the four Gaussian-points whose weights are 1.0 
-    for ix=1:2
-        for iy=1:2
+    for ix in 1:2
+        for iy in 1:2
             # Calculate shape functions and their derivatives (refer Pg. 78 FEA by Bhavikatti)
-            for i=1:8
+            for i in 1:8
                 aa=(1.0+r[i]*GP[ix])
                 bb=(1.0+s[i]*GP[iy])
                 if(i<=4)
@@ -100,7 +102,7 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
             xjaci[2,2]=xjac[1,1]/Δjac
 
             da=Δjac*WG[ix]*WG[iy]
-            #println(WG[ix], WG[ix], Δjac)
+            #println("DetJac", Δjac)
 			sfdj=fill(0.0, (2, 8))
 
             # Calculate strain-displacement matrix B: C. S. Krishnamoorthy Pg. 115
@@ -111,10 +113,10 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
                     end
                 end
             end
-            
+            #println("SFDJ", sfdj[2,8])
 			g = fill(0.0, (5, 40))
 			
-            for i=1:8
+            for i in 1:8
                 k1=5*(i-1)+1
                 k2=k1+1
                 k3=k2+1
@@ -128,22 +130,34 @@ function mass(xl::Vector{Float64}, yl::Vector{Float64}, th::Float64)
             end
 
 			sg = fill(0.0, (5, 40))
-            for i=1:5
-                for j=1:40
-                    for k=1:5
+            for i in 1:5
+                for j in 1:40
+                    for k in 1:5
                         sg[i,j]=sg[i,j]+ss[i,k]*g[k,j]
                     end
                 end
             end
-
-            for i=1:40
-                for j=1:40
-                    for k=1:5
+            
+            for i in 1:40
+                for j in 1:40
+                    for k in 1:5
                         em[i,j]=em[i,j]+g[k,i]*sg[k,j]*da
                     end
                 end
             end
+            #println("em", em[2,2])
+        end
+    end
 
+    m,n=size(em)
+    println("Size of EM is ", m,"×",n)
+    println("Diagonal elements of EM matrix:")
+
+    open("EM.txt", "w") do file
+        for i in 1:m
+            for j in 1:n
+                   println(file, em[i,j])
+            end
         end
     end
     

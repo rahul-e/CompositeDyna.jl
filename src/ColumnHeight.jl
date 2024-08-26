@@ -26,7 +26,7 @@ function ColumnH(cht::Vector{Int64} , nd::Vector{Int64}, ned::Int64, neq::Int64)
             end
         end
     end
-
+    # Second loop to Calculate the column Height
     for i=1:ned
         tmp=nd[i]
         #println(i," ",nd[i])
@@ -42,44 +42,44 @@ function ColumnH(cht::Vector{Int64} , nd::Vector{Int64}, ned::Int64, neq::Int64)
     
 end 
 
-function CadNum(cht::Vector{Int64}, neq::Int64, nsky)
+function CadNum(cht::Vector{Int64}, neq::Int64)
 		
-    # cht - column height refers to the number of elements
+    # cht - column height refers to the number of elements in each column of the global stiffness matrix below the skyline and above the leading diagonal element.
     # nds - address of the diagonal elements
     # neq - number of equations
     # neq1 = neq+1
     # Compute address of diagonal elements
     # when column height is known C. S. Krishnamoorthy Pg. 186
     #nsky::Int64=0
+    # The number of diagonal elements of the global stiffness matrix ar stored in "nds" array
     nds = fill(0, neq+1)
     
     nds[1]=1
     nds[2]=2
     mband::Int64=0
     
-    if(neq>1)
-        for i=2:neq
+    if neq == 1
+        mband=mband+1
+        nsky = nds[neq1]-1
+        return nds, nsky
+    end
+
+    for i=2:neq
             if(cht[i]>mband)
                 mband=cht[i]
             end
-            #println("CHT ", cht[i])
             nds[i+1]=nds[i]+cht[i]+1
-            #println(i," ",nds[i+1])
-        end
-    #elseif(neq==1)
     end
     mband=mband+1
-    #end
-    nsky=nds[neq+1]-1
-    # for i=1:neq println(i) end
     
+    nsky=nds[neq+1]-1
     return nds, nsky
 end
 
-function passem(sk::Vector{Float64}, ek::Array{Float64, 2}, nds::Vector{Int64},
+function passem!(sk::Vector{Float64},ek::Array{Float64, 2}, nds::Vector{Int64},
     nd::Vector{Int64}, ned::Int64, neq1::Int64, nsky::Int64, nued::Int64, 	 
     )
-    
+ # Passem assembles the element stiffness matrix to global stiffness matrix in the form an 1D array SK   
     i::Int64=0
     ii::Int64=0
     j::Int64=0
@@ -93,24 +93,37 @@ function passem(sk::Vector{Float64}, ek::Array{Float64, 2}, nds::Vector{Int64},
 
     # PASSEM function FEA - THeory and Programming, C. S. Krishnamoorthy, Pg. 190 
     for i=1:ned
+        # Set ii = eqn. number corresponding to DOF(I)
         ii=nd[i]
-        #println("i ",i, "ii ", ii)
-        if(ii>0)
-            for j=1:ned
+        # Is the DOF inactive
+        if (ii == 0)
+            continue
+        end
+
+        for j in 1:ned
+                # Set jj = eqn. number corresponding to DOF(J)
                 jj=nd[j]
-                #println("JJ ",jj)
-                if(jj>0) 
-                    mi=nds[jj]
-                    ij=jj-ii
-                    if(ij>=0)
-                        kk=mi+ij
-                        #println("kk ",kk, "ij ",ij, "mi ", mi)
-                        sk[kk]=sk[kk]+ek[i,j]
-                    end
+                # Is the DOF inactive
+                if (jj == 0)
+                    continue
                 end
-            end
+                # Set mi as the diagonal element entry number of the 
+                # jj^th column of stiffness matrix
+
+                mi=nds[jj]
+                ij=ii-jj
+                    
+                if (ij < 0)
+                        kk=mi+jj-ii
+                        sk[kk]=sk[kk]+ek[i,j]
+                elseif (ij == 0)
+                        kk=mi
+                        sk[kk]=sk[kk]+ek[i,j]
+                end
+                
         end
     end
+
     return sk
 end
 

@@ -12,7 +12,8 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
           maxnode=500
           maxelement=50
           nelements=nx*ny
-     
+          
+          # Initialze node matrix
           nodemat = fill(0, (2*ny+1, 2*nx+1))
           xnode = fill(0.0, maxnode)
           ynode = fill(0.0, maxnode)
@@ -37,26 +38,29 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
      
           # Assign a node number to each physical node and store this in "nodemat"
           count = 1
-          for i = 1:2:ny*2+1
-               for j = 1:nx*2+1
+          for i in 1:2:(ny*2+1)
+               for j in 1:(nx*2+1)
                     nodemat[i,j]=count
                     count=count+1
                end
      
-               if(i!=ny*2+1)
-                    for j = 1:2:nx*2+1
-                         nodemat[i+1,j]=count
-                         count=count+1
-                    end
-                    
+               if(i==ny*2+1)
+                    continue
                end
+               for j = 1:2:(nx*2+1)
+                    nodemat[i+1,j]=count
+                    count=count+1
+               end
+                    
           end
      
           #println(nodemat)
           
           nhigh=count-1
-          for i = 1:ny*2+1
-               for j = 1:nx*2+1
+
+          # Assign node coordinates based on NODEMAT
+          for i in 1:ny*2+1
+               for j in 1:nx*2+1
                     if(nodemat[i,j]!=0)
                          xnode[nodemat[i,j]]=(j-1)*dx/2.0
                          ynode[nodemat[i,j]]=(i-1)*dy/2.0
@@ -65,18 +69,17 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
                end
           end
           nbignode=nodemat[ny*2+1,nx*2+1]
-     
-          ndd = fill(1,(nbignode,5))
-           nddp = fill(1,(nbignode,2))
+          
+          #Initialize boundary condition arrays
+          ndd = ones(Int,nbignode, 5)
+          nddp = ones(Int,nbignode,2)
           # Set boundary conditions (set value equal to zero corresponding to constrained DOF for every boundary node)
      
           # Left side boundary
-          for i=1:ny*2+1
+          for i in 1:ny*2+1
                if(klp==1)
                     nddp[nodemat[i,1],1]=0
-               end
-               
-               if(klp==2)
+               elseif klp==2
                     nddp[nodemat[i,1],1]=0
                     nddp[nodemat[i,1],2]=0
                end
@@ -85,25 +88,16 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
                     ndd[nodemat[i,1],1]=0
                     ndd[nodemat[i,1],3]=0
                     ndd[nodemat[i,1],5]=0
+               elseif kl==2
+                    ndd[nodemat[i,1],:] .= 0
+
                end
-               
-               if(kl==2)
-                    ndd[nodemat[i,1],1]=0
-                    ndd[nodemat[i,1],2]=0
-                    ndd[nodemat[i,1],3]=0
-                    ndd[nodemat[i,1],4]=0
-                    ndd[nodemat[i,1],5]=0
-               end     
-               
-          end          
-     
-          # Right side boundary
-          for i=1:ny*2+1
+          end
+          
+          for i in 1:ny*2+1               
                if(krp==1)
                     nddp[nodemat[i,nx*2+1],1]=0
-               end
-               
-               if(krp==2)
+               elseif krp==2
                     nddp[nodemat[i,nx*2+1],1]=0
                     nddp[nodemat[i,nx*2+1],2]=0
                end
@@ -112,70 +106,42 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
                     ndd[nodemat[i,nx*2+1],1]=0
                     ndd[nodemat[i,nx*2+1],3]=0
                     ndd[nodemat[i,nx*2+1],5]=0
-               end
-               
-               if(kr==2)
-                    ndd[nodemat[i,nx*2+1],1]=0
-                    ndd[nodemat[i,nx*2+1],2]=0
-                    ndd[nodemat[i,nx*2+1],3]=0
-                    ndd[nodemat[i,nx*2+1],4]=0
-                    ndd[nodemat[i,nx*2+1],5]=0
+               elseif kr==2
+                    ndd[nodemat[i,nx*2+1],:] .= 0
+
                end     
-               
           end
           
           # Bottom side boundary
-          for i=1:nx*2+1
+          for i in 1:nx*2+1
                if(kbp==1)
                     nddp[nodemat[1,i],1]=0
-               end
-               
-               if(kbp==2)
+               elseif kbp==2
                     nddp[nodemat[1,i],1]=0
                     nddp[nodemat[1,i],2]=0
                end
      
                if(kb==1)
-                    ndd[nodemat[1,i],2]=0
-                    ndd[nodemat[1,i],3]=0
-                    ndd[nodemat[1,i],4]=0
+                    ndd[nodemat[1,i],2:4] .= 0
+               elseif kb==2
+                    ndd[nodemat[1,i],:] .= 0
                end
-               
-               if(kb==2)
-                    ndd[nodemat[1,i],1]=0
-                    ndd[nodemat[1,i],2]=0
-                    ndd[nodemat[1,i],3]=0
-                    ndd[nodemat[1,i],4]=0
-                    ndd[nodemat[1,i],5]=0
-               end     
-               
           end
-     
-          # Top side boundary
-          for i=1:nx*2+1
+          
+          for i in 1:nx*2+1
+              # Top boundary conditions 
                if(ktp==1)
                     nddp[nodemat[ny*2+1,i],1]=0
-               end
-               
-               if(ktp==2)
+               elseif ktp==2
                     nddp[nodemat[ny*2+1,i],1]=0
                     nddp[nodemat[ny*2+1,i],2]=0
                end
      
                if(kt==1)
-                    ndd[nodemat[ny*2+1,i],2]=0
-                    ndd[nodemat[ny*2+1,i],3]=0
-                    ndd[nodemat[ny*2+1,i],4]=0
-               end
-               
-               if(kt==2)
-                    ndd[nodemat[ny*2+1,i],1]=0
-                    ndd[nodemat[ny*2+1,i],2]=0
-                    ndd[nodemat[ny*2+1,i],3]=0
-                    ndd[nodemat[ny*2+1,i],4]=0
-                    ndd[nodemat[ny*2+1,i],5]=0
+                    ndd[nodemat[ny*2+1,i],2:4]=0
+               elseif(kt==2)
+                    ndd[nodemat[ny*2+1,i],:]=0
                end     
-               
           end
      
           # Replace placeholder (value one) in ndd and nddp by equation numbers
@@ -183,15 +149,15 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
           nbig=0
           nbigp=0
           
-          for i=1:nbignode
-               for j=1:5
+          for i in 1:nbignode
+               for j in 1:5
                     if(ndd[i,j]!=0)
                          nbig=nbig+1
                          ndd[i,j]=nbig
                     end
                end
                
-               for j=1:2
+               for j in 1:2
                     if(nddp[i,j]!=0)
                          nbigp=nbigp+1
                          nddp[i,j]=nbigp
@@ -204,8 +170,8 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
           # [1, 2, 3, 4] for corner nodes beginning from bottom-left counting anti-clockwise
           # and [5, 6, 7, 8] for midside nodes starting from bottom side of element.  
      
-          for i=1:ny
-               for j=1:nx
+          for i in 1:ny
+               for j in 1:nx
                     num=(i-1)*nx+j
                     nelmat[num,1]=nodemat[(i-1)*2+1, (j-1)*2+1]
                     nelmat[num,2]=nodemat[(i-1)*2+1, (j-1)*2+3]
@@ -220,14 +186,15 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
           
           # Total number of elements
           nelements=nx*ny
-          for i=1:nelements
-               for j=1:8
-                    for k=1:5
+          for i in 1:nelements
+               for j in 1:8
+                    for k in 1:5
                          num=(j-1)*5+k
                          nnd[i,num]=ndd[nelmat[i,j],k]
                     end
-     
-                    for k=1:2
+               end
+               for j in 1:8
+                    for k in 1:2
                          num=(j-1)*2+k
                          nndp[i,num]=nddp[nelmat[i,j],k]
                     end
@@ -272,23 +239,24 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
           # Initiate skyline matrix
           nsky::Int64=0
           
-           cht = fill(0, nbig)
-           nds = fill(0, nbig+1)
+          cht = fill(0, nbig)
+          nds = fill(0, nbig+1)
           
           #mband::Int64=0
           lnum::Int64=0
           # CHT = Column Height
           nd = fill(0, ndof)
-          
+          # Calculate column height
           for lnum=1:nelements
                for i=1:40
                     nd[i]=nnd[lnum,i]
-                 end
+               end
                cht = ColumnH(cht, nd, 40, nbig)
           end
+          # Calculate address of diagonal elements (NDS)
           for lnum=1:nelements
-               #nbig1=nbig+1
-               nds, nsky = CadNum(cht, nbig, nsky)
+               nbig1=nbig+1
+               nds, nsky = CadNum(cht, nbig)
           end
      
           # Initialize global stiffness and mass matrix and
@@ -302,44 +270,45 @@ function geo(cc::Array{Float64}, ac::Float64, bc::Float64, th::Float64, nx::Int6
 #           c = CompositeDyna.composit(nlayers, ori, zpos, E11, E22, PR12, G12, G13, G23)
                 
            # Call the funtion to generate element mass matrix
-           em = mass(xl,yl,th)
-           ek = bstif(cc, xl, yl, 1.0E10, 1.0E10)
+           em = mass!(xl,yl,th)
+           ek = bstif!(cc, xl, yl, 1.0E20, 1.0E20)
            
            # Loop over elements to assemble
           for lnum=1:nelements
                for i=1:40
                     nd[i]=nnd[lnum,i]
-                 end
-                 
+                    #println("lnum", lnum, "nd", nd[i])
+               end
                for i=1:40
                     for j=1:40
                          if(nd[i]!=0 && nd[j]!=0)
                               sqk[nd[i],nd[j]]=sqk[nd[i],nd[j]]+em[i,j]
+                              
                          end
                     end
                end
+               
+               gk=passem!(gk,ek,nds,nd,40,nbig+1,nsky,40)
      
-               nxl=mod(lnum,nx)
-               nyl=((lnum-1)/nx)+1
-     
-               if(nxl==0)
-                    nxl=nx
-               end
-     
-               #if((nxl<=idxe) && (nxl>=idxs) && (nyl<=idye) && (nyl>=idys))
-               #     passem(GK,DEK,NDS,ND,40,NBIG1,NSKY,40)
-               #else
-               gk=passem(gk,ek,nds,nd,40,nbig+1,nsky,40)
-               #end
-     
-               gm=passem(gm,em,nds,nd,40,nbig+1,nsky,40)
+               gm=passem!(gm,em,nds,nd,40,nbig+1,nsky,40)
           end
-     
-          nn::Int64=nbig
-          nwk::Int64=nsky
+          
+          m=length(gk)
+          println("Size of GK is ", m)
+          println("Dump elements of GK matrix:")
+          #m=length(sk)
+          open("GK.txt", "w") do file
+              for i in 1:m
+                   #for j in 1:n
+                   println(file, gk[i])
+                   #end
+              end
+          end
+          nn::Int32=nbig
+          nwk::Int32=nsky
           println("Number of elements in the stiffness matrix is ", nsky)
           println("Number of equations in the global system is ", nbig)
           println("Computing free vibration characteristics")
      
-          return gk, gm, nbig, nsky, cht
+          return gk, gm, nbig, nsky, cht, nds
      end  

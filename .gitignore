@@ -1,2 +1,16 @@
 src/Subspace.jl
 test/readfile.jl
+test/subspace.f
+test/EK.txt
+test/EM.txt
+test/GK.txt
+test/GK_mat.txt
+test/ComplianceMat.txt
+EK.txt
+EM.txt
+GK.txt
+GK_mat.txt
+SK.txt
+SQK.txt
+fort.14
+ComplianceMat.txt

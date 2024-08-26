@@ -1,13 +1,58 @@
-2 				                         *IATYPE: 2=COMPOSITE* Nair/Narita 
-3 40.0 1.0 0.25 0.6 0.6 0.5 			*NLAYERS,E11,E22,PR12,G12,G13,G23*
+1													*IATYPE: 1=ISO 2=COMP
+1 70.0 70.0 0.3 26.9 26.9 26.9	                *NLAYERS,E11,E22,PR12,G12,G13,G23
+0.0													*ORI: ORIENTATION IN DIFF LINES
+0.5												    *ZPOS: ZCOORDINATES IN DIFF LINES
+-0.5
+1000.0 100.0 4 2									*A, B, NX, NY*
+1 1 0 0												*Actual BC
+0 0 0 0												*Plane-Stress BC
+0.0 0.0												*Rx, Ry
+0 0 0 0												*Damage XSTART, XEND, YSTART, YEND
+0 0													*Damage : OMEGA1, OMEGA2
+0													*Follower Force Inclusion Param
+1													*Loading Type
+10													*NPATCH
+0													*ALPHA
+0													*NCOMB : No. of combinations
+0 0													*ICOMB : Combinations,
+1 3
+
+2											*IATYPE: 1=ISO 2=COMP
+4 40.0 1.0 0.25 0.6 0.6 0.5	                *NLAYERS,E11,E22,PR12,G12,G13,G23
+45
+-45
+45
+-45											*ORI: ORIENTATION IN DIFF LINES
+.5
+0.25
 0
-90
+-0.25												*ZPOS: ZCOORDINATES IN DIFF LINES
+-.5
+10.0 10.0 6 2 										*A, B, NX, NY*
+2 0 0 0												*Actual BC
+1 0 0 0												*Plane-Stress BC
+0.0 0.0												*Rx, Ry
+0 0 0 0												*Damage XSTART, XEND, YSTART, YEND
+0 0													*Damage : OMEGA1, OMEGA2
+0													*Follower Force Inclusion Param
+1													*Loading Type
+10													*NPATCH
+0													*ALPHA
+0													*NCOMB : No. of combinations
+0 0													*ICOMB : Combinations,
+1 3
+
+
+1 				                         *IATYPE: 2=COMPOSITE* Nair/Narita 
+3 70.0 70.0 0.3 26.923 26.923 26.923 			*NLAYERS,E11,E22,PR12,G12,G13,G23*
+0
+0
 0				                           	*ORI: ORIENTATION IN DIFF LINES
 .5					                        *ZPOS: ZCOORDINATES IN DIFF LINES*
 .25
 -.25
 -.5
-10.0 1.0 2 2				            *A, B, NX, NY*
+10.0 10.0 6 2				            *A, B, NX, NY*
 2 1 0 0									     *Actual BC*
 1 0 0 0								        *Plane-Stress BC*
 0.0 0.0								        *Rx Ry
@@ -31,7 +76,7 @@
 
 
 1													*IATYPE: 1=ISO 2=COMP
-1 70.0 70.0 0.3 28.0 28.0 28.0	                *NLAYERS,E11,E22,PR12,G12,G13,G23
+1 70.0 70.0 0.3 27.0 27.0 27.0	                *NLAYERS,E11,E22,PR12,G12,G13,G23
 0.0													*ORI: ORIENTATION IN DIFF LINES
 .5												    *ZPOS: ZCOORDINATES IN DIFF LINES
 -.5
